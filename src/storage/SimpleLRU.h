@@ -52,6 +52,7 @@ private:
         std::unique_ptr<lru_node> next;
         lru_node(const std::string &key_, const std::string val_) : key(key_), value(val_), prev(nullptr), next(nullptr){}
     };
+    void update(lru_node &node);
     bool key_ex(const std::string &key, const std::string &value);
     void delete_lru();
     void add_elem_back(const std::string &key, const std::string &value);
