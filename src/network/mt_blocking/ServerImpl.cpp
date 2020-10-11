@@ -107,7 +107,7 @@ void ServerImpl::OnRun() {
     // - parser: parse state of the stream
     // - command_to_execute: last command parsed out of stream
     // - arg_remains: how many bytes to read from stream to get command argument
-    // - argument_for_command: buffer stores
+    // - argument_for_command: buffer stores argument
     while (running.load()) {
         _logger->debug("waiting for connection...");
 
@@ -141,19 +141,23 @@ void ServerImpl::OnRun() {
         }
 
         // TODO: Start new thread and process data from/to connection
-        std::unique_lock<std::mutex> lock(_m);
-        if(_sockets.size() < max_workers){
-          //add new client_socket to our set
-          _sockets.insert(client_socket);
-          std::thread(&ServerImpl::Worker, this, client_socket).detach();
-        }
-        else{
-          // too much connections
-          close(client_socket);
+        {
+            std::unique_lock<std::mutex> lock(_m);
+
+            if(_sockets.size() < max_workers && running.load()){
+              //add new client_socket to our set
+              _sockets.insert(client_socket);
+              std::thread(&ServerImpl::Worker, this, client_socket).detach();
+            }
+            else{
+              // too much connections
+              close(client_socket);
+            }
         }
     }
-    // Cleanup on exit...
-    _logger->warn("Network stopped");
+
+        // Cleanup on exit...
+        _logger->warn("Network stopped");
 }
 
 void ServerImpl::Worker(int client_socket){
@@ -236,17 +240,16 @@ void ServerImpl::Worker(int client_socket){
     }
   } catch (std::runtime_error &ex) {
     _logger->error("Failed to process connection on descriptor {}: {}", client_socket, ex.what());
-}
-
-  // We are done with this connection
-  close(client_socket);
+  }
   std::unique_lock<std::mutex> lock(_m);
   //delete this connection from set
   _sockets.erase(client_socket);
+  close(client_socket);
   if(_sockets.empty()){
     _cv.notify_all();
   }
 }
+
 
 } // namespace MTblocking
 } // namespace Network
