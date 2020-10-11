@@ -62,7 +62,7 @@ private:
     std::size_t free_space;
     // Main storage of lru_nodes, elements in this list ordered descending by "freshness": in the head
     // element that wasn't used for longest time.
-    //
+    
     // List owns all nodes
     std::unique_ptr<lru_node> _lru_head;
     lru_node *_lru_tail;
