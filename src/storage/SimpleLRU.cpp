@@ -3,24 +3,6 @@
 namespace Afina {
 namespace Backend {
 
-bool SimpleLRU::key_ex(const std::string &key, const std::string &value){
-
-    auto iter = _lru_index.find(key);
-    update(iter->second.get());
-    //here ^^^ we move our pair to tail
-
-    std::string &val = iter -> second.get().value;
-    free_space += val.size();
-
-    while(free_space < value.size()){
-      delete_lru();
-    }
-    val = value;
-    free_space -= value.size();
-
-    return true;
-}
-
 void SimpleLRU::delete_lru(){
   lru_node *lru = _lru_head.get();
   free_space += (lru -> key.size() + lru -> value.size());
