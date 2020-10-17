@@ -3,6 +3,7 @@
 namespace Afina {
 namespace Backend {
 
+
 void SimpleLRU::delete_lru(){
   lru_node *lru = _lru_head.get();
   free_space += (lru -> key.size() + lru -> value.size());
@@ -89,7 +90,7 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
 
   if (key.size() + value.size() > _max_size){ return false; }
 
-  auto iter = _lru_index.find(key);
+  if(_lru_index.count(key)){ return false; }
 
   if(iter != _lru_index.end()){ return false; }
 

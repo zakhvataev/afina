@@ -2,7 +2,7 @@
 
 ### TL;DR
 
-    # yum install perl-Test-Simple
+  # yum install perl-Test-Simple
 
 	$ afina -p pidfile -d
 	$ prove .../путь/к/network_test.pl
