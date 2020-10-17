@@ -53,7 +53,6 @@ private:
         lru_node(const std::string &key_, const std::string val_) : key(key_), value(val_), prev(nullptr), next(nullptr){}
     };
     void update(lru_node &node);
-    bool key_ex(const std::string &key, const std::string &value);
     void delete_lru();
     void add_elem_back(const std::string &key, const std::string &value);
     // Maximum number of bytes could be stored in this cache.
@@ -63,7 +62,7 @@ private:
     std::size_t free_space;
     // Main storage of lru_nodes, elements in this list ordered descending by "freshness": in the head
     // element that wasn't used for longest time.
-    //
+
     // List owns all nodes
     std::unique_ptr<lru_node> _lru_head;
     lru_node *_lru_tail;
