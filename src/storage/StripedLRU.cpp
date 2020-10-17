@@ -6,7 +6,7 @@ namespace Backend{
 StripedLRU::StripedLRU(std::size_t max_size, std::size_t _num_shards) : num_shards(_num_shards){
 
     if(max_size / num_shards < 1024*1024){
-      throw std::runtime_error("StripedLRU: number of shards is more than 4");
+      throw std::runtime_error("StripedLRU: not enough memory for shards");
     }
 
     for(size_t i = 0; i < num_shards; ++i){
