@@ -89,8 +89,6 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
 
   if (key.size() + value.size() > _max_size){ return false; }
 
-  auto iter = _lru_index.find(key);
-
   if(iter != _lru_index.end()){ return false; }
 
   else {
@@ -111,24 +109,6 @@ bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
 bool SimpleLRU::Set(const std::string &key, const std::string &value) {
 
   auto iter = _lru_index.find(key);
-
-  if(iter == _lru_index.end()){ return false; }
-
-  else{
-    update(iter->second.get());
-    //here ^^^ we move our pair to tail
-
-    std::string &val = iter -> second.get().value;
-    free_space += val.size();
-
-    while(free_space < value.size()){
-      delete_lru();
-    }
-    val = value;
-    free_space -= value.size();
-
-    return true;
-  }
 }
 
 // See MapBasedGlobalLockImpl.h
