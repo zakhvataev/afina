@@ -56,7 +56,7 @@ private:
 
     // Thread to run network on
     std::thread _thread;
-    const uint32_t time_for_connection = 10;
+    // const uint32_t time_for_connection = 10;
     std::set<int> _sockets;
     std::condition_variable _cv;
     std::mutex _m;
