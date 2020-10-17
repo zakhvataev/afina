@@ -88,6 +88,8 @@ bool SimpleLRU::Put(const std::string &key, const std::string &value) {
 // See MapBasedGlobalLockImpl.h
 bool SimpleLRU::PutIfAbsent(const std::string &key, const std::string &value) {
 
+  auto iter = _lru_index.find(key);
+
   if (key.size() + value.size() > _max_size){ return false; }
 
   if(_lru_index.count(key)){ return false; }
