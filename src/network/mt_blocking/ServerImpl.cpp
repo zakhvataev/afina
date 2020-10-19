@@ -34,7 +34,7 @@ ServerImpl::ServerImpl(std::shared_ptr<Afina::Storage> ps, std::shared_ptr<Loggi
 ServerImpl::~ServerImpl() {}
 
 // See Server.h
-void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers) {
+void ServerImpl::Start(uint16_t port, uint32_t n_accept, uint32_t n_workers = 1) {
     max_workers = n_workers;
     _logger = pLogging->select("network");
     _logger->info("Start mt_blocking network service");
@@ -93,7 +93,6 @@ void ServerImpl::Stop() {
 void ServerImpl::Join() {
     assert(_thread.joinable());
     _thread.join();
-    close(_server_socket);
 
     std::unique_lock<std::mutex> lock(_m);
     while(!_sockets.empty()){
@@ -135,7 +134,7 @@ void ServerImpl::OnRun() {
         // Configure read timeout
         {
             struct timeval tv;
-            tv.tv_sec = time_for_connection; // TODO: make it configurable
+            tv.tv_sec = 5; // TODO: make it configurable
             tv.tv_usec = 0;
             setsockopt(client_socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof tv);
         }
@@ -158,10 +157,11 @@ void ServerImpl::OnRun() {
 
         // Cleanup on exit...
         _logger->warn("Network stopped");
+        close(_server_socket);
 }
 
 void ServerImpl::Worker(int client_socket){
-  std::size_t arg_remains;
+  std::size_t arg_remains = 0;
   Protocol::Parser parser;
   std::string argument_for_command;
   std::unique_ptr<Execute::Command> command_to_execute;
@@ -241,12 +241,14 @@ void ServerImpl::Worker(int client_socket){
   } catch (std::runtime_error &ex) {
     _logger->error("Failed to process connection on descriptor {}: {}", client_socket, ex.what());
   }
-  std::unique_lock<std::mutex> lock(_m);
-  //delete this connection from set
-  _sockets.erase(client_socket);
-  close(client_socket);
-  if(_sockets.empty()){
-    _cv.notify_all();
+  {
+    std::unique_lock<std::mutex> lock(_m);
+    //delete this connection from set
+    _sockets.erase(client_socket);
+    close(client_socket);
+    if(_sockets.empty() && !running.load()){
+      _cv.notify_all();
+    }
   }
 }
 
