@@ -15,6 +15,7 @@
 #include <deque>
 #include <sys/epoll.h>
 #include <iostream>
+#include <atomic>
 
 namespace Afina {
 namespace Network {
@@ -36,8 +37,7 @@ public:
     }
 
     inline bool isAlive(){
-        std::lock_guard<std::mutex> lock(_mutex);
-        return _running;
+        return _running.load(std::memory_order_acquire);
     }
 
     void Start();
@@ -55,8 +55,6 @@ private:
     int _socket;
     struct epoll_event _event;
     
-    bool _running;
-
     std::shared_ptr<spdlog::logger> _logger;
     std::shared_ptr<Afina::Storage> _pStorage;
     std::unique_ptr<Execute::Command> _command_to_execute;
@@ -72,6 +70,9 @@ private:
     std::string _argument_for_command;
     
     std::deque <std::string> _queue;
+
+    std::atomic<bool> _running;
+    std::atomic<bool> _eof;
 
     std::mutex _mutex;
 };
