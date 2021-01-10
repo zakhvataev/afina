@@ -32,7 +32,10 @@ namespace STnonblock {
 ServerImpl::ServerImpl(std::shared_ptr<Afina::Storage> ps, std::shared_ptr<Logging::Service> pl) : Server(ps, pl) {}
 
 // See Server.h
-ServerImpl::~ServerImpl() {}
+ServerImpl::~ServerImpl() {
+    Stop();
+    Join();
+}
 
 // See Server.h
 void ServerImpl::Start(uint16_t port, uint32_t n_acceptors, uint32_t n_workers) {
@@ -91,12 +94,18 @@ void ServerImpl::Stop() {
     if (eventfd_write(_event_fd, 1)) {
         throw std::runtime_error("Failed to wakeup workers");
     }
+
+    for(auto connect : _connections){
+        shutdown(connect->_socket, SHUT_RD);
+    }
 }
 
 // See Server.h
 void ServerImpl::Join() {
     // Wait for work to be complete
-    _work_thread.join();
+    if(_work_thread.joinable()){
+        _work_thread.join();
+    }
 }
 
 // See ServerImpl.h
@@ -164,7 +173,7 @@ void ServerImpl::OnRun() {
 
                 close(pc->_socket);
                 pc->OnClose();
-
+                _connections.erase(pc);
                 delete pc;
             } else if (pc->_event.events != old_mask) {
                 if (epoll_ctl(epoll_descr, EPOLL_CTL_MOD, pc->_socket, &pc->_event)) {
@@ -172,12 +181,19 @@ void ServerImpl::OnRun() {
 
                     close(pc->_socket);
                     pc->OnClose();
-
+                    _connections.erase(pc);
                     delete pc;
                 }
             }
         }
     }
+    close(_server_socket);
+    for(auto connect : _connections){
+        close(connect -> _socket);
+        delete connect;
+        _connections.erase(connect);
+    }
+    _connections.clear();
     _logger->warn("Acceptor stopped");
 }
 
@@ -220,6 +236,7 @@ void ServerImpl::OnNewConnection(int epoll_descr) {
                 delete pc;
             }
         }
+        _connections.emplace(pc);
     }
 }
 

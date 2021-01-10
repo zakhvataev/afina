@@ -80,6 +80,10 @@ void Connection::DoRead() {
                         _event.events |= EPOLLOUT;
                     }
 
+                    if (_queue.size() > _max_queue){
+                        _event.events &= ~EPOLLIN;
+                    }
+
                     _command_to_execute.reset();
                     _argument_for_command.resize(0);
                     _parser.Reset();
