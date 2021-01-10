@@ -9,9 +9,19 @@
 namespace Afina {
 namespace Coroutine {
 
+Engine::~Engine(){
+    for (auto coro = alive; coro != nullptr;){
+        auto tmp = coro;
+        coro = coro -> next;
+        delete[] std::get<0> (tmp->Stack);
+        delete tmp;
+    }
+}
+
 void Engine::Store(context &ctx) {
     char cur_stack;
-    
+    std::cerr<< (size_t)ctx.Hight <<'\n'<<size_t(ctx.Low)<<std::endl;
+
     if(&cur_stack > StackBottom){
         ctx.Hight = &cur_stack;
     } else {
@@ -19,7 +29,7 @@ void Engine::Store(context &ctx) {
     }
 
     auto stack_size = ctx.Hight - ctx.Low;
-
+    std::cerr<<stack_size<<std::endl;
     if (stack_size > std::get<1>(ctx.Stack) || std::get<1>(ctx.Stack) > stack_size * 2){
         delete[] std::get<0>(ctx.Stack);
         std::get<0>(ctx.Stack) = new char[stack_size];
@@ -51,7 +61,7 @@ void Engine::yield() {
 }
 
 void Engine::sched(void *routine_) {
-    if(routine_ == cur_routine){
+    if(routine_ == cur_routine || routine_ == nullptr){
         return yield();
     }
 
