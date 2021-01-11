@@ -9,6 +9,7 @@ namespace MTnonblock {
 // See Connection.h
 void Connection::Start() {
     _event.events = EPOLLIN | EPOLLRDHUP | EPOLLERR;
+    _running = true;
     _logger->debug("Start connection on socket {}", _socket);
 }
 
