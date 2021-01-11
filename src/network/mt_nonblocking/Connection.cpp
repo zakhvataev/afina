@@ -16,7 +16,7 @@ void Connection::Start() {
 void Connection::OnError() {
 
     _logger->error("Error on socket {}", _socket);
-    _running.store(false, std::memory_order_release);
+    _running.store(false, std::memory_order_relaxed);
 }
 
 // See Connection.h

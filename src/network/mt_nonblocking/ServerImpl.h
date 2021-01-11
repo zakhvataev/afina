@@ -39,6 +39,8 @@ public:
     // See Server.h
     void Join() override;
 
+    void rm_connection(Connection * connect);
+
 protected:
     void OnRun();
     void OnNewConnection();

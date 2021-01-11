@@ -137,6 +137,12 @@ void ServerImpl::Join() {
             t.join();
         }
     }
+    _acceptors.clear();
+
+    for (auto &w : _workers) {
+        w.Join();
+    }
+    _workers.clear();
 
     std::lock_guard<std::mutex> lock(_mutex);
     close(_server_socket);
@@ -144,12 +150,6 @@ void ServerImpl::Join() {
         close(connect -> _socket);
         delete connect;
     }
-    _acceptors.clear();
-    
-    for (auto &w : _workers) {
-        w.Join();
-    }
-    _workers.clear();
 }
 
 // See ServerImpl.h
@@ -239,6 +239,13 @@ void ServerImpl::OnRun() {
         }
     }
     _logger->warn("Acceptor stopped");
+}
+
+void ServerImpl::rm_connection(Connection* connect){
+    std::lock_guard<std::mutex> lock(_mutex);
+    _connections.erase(connect);
+    close(connect->_socket);
+    delete connect;
 }
 
 } // namespace MTnonblock
