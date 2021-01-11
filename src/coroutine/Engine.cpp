@@ -20,7 +20,6 @@ Engine::~Engine(){
 
 void Engine::Store(context &ctx) {
     char cur_stack;
-    std::cerr<< (size_t)ctx.Hight <<'\n'<<size_t(ctx.Low)<<std::endl;
 
     if(&cur_stack > StackBottom){
         ctx.Hight = &cur_stack;
